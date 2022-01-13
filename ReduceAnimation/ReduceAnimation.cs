@@ -11,7 +11,7 @@ namespace ReduceAnimation
     {
         public override string Name => "ReduceAnimation";
         public override string Author => "eia485";
-        public override string Version => "1.0.0";
+        public override string Version => "1.1.0";
         public override string Link => "https://github.com/EIA485/NeosReduceAnimation";
         public override void OnEngineInit()
         {
@@ -54,6 +54,14 @@ namespace ReduceAnimation
                 }
                 return codes;
             }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ModalOverlay), "OnAwake")]
+            static void ModalOverlayOnAwakePostfix(ModalOverlay __instance)
+            {
+                __instance.AnimationTime.Value = 0f;
+            }
+
         }
     }
 }
