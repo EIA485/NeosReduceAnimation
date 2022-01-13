@@ -11,7 +11,7 @@ namespace ReduceAnimation
     {
         public override string Name => "ReduceAnimation";
         public override string Author => "eia485";
-        public override string Version => "1.1.0";
+        public override string Version => "1.2.0";
         public override string Link => "https://github.com/EIA485/NeosReduceAnimation";
         public override void OnEngineInit()
         {
@@ -62,6 +62,15 @@ namespace ReduceAnimation
                 __instance.AnimationTime.Value = 0f;
             }
 
-        }
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(WorldDetail), "OnChanges")]
+            static void WorldDetailOnChangesPostfix(WorldDetail __instance,ref float ____expandLerp, ref float ____compactDetailLerp)
+            {
+                ____expandLerp = (__instance.Expanded.Value ? 1f : 0f);
+                ____compactDetailLerp = (__instance.CompactDetailExpanded.Value ? 1f : 0f);
+            }
+            		
+
+            }
     }
 }
