@@ -4,6 +4,7 @@ using FrooxEngine;
 using FrooxEngine.UIX;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Reflection;
 
 namespace ReduceAnimation
 {
@@ -11,13 +12,46 @@ namespace ReduceAnimation
     {
         public override string Name => "ReduceAnimation";
         public override string Author => "eia485";
-        public override string Version => "1.2.0";
+        public override string Version => "1.3.0";
         public override string Link => "https://github.com/EIA485/NeosReduceAnimation";
         public override void OnEngineInit()
         {
             Harmony harmony = new Harmony("net.eia485.ReduceAnimation");
             harmony.PatchAll();
+
+            MethodInfo OpenCloseSpeedOnAttach = null;
+
+            var ins = PatchProcessor.GetOriginalInstructions(AccessTools.Method(typeof(SettingsDialog), "OnAttach"));
+            for (int i = 0; i < ins.Count; i++)
+            {
+                if (ins[i].opcode == OpCodes.Ldstr && ins[i].operand == "Settings.Dash.OpenCloseSpeed")
+                {
+                    for (int si = i + 1; si < ins.Count; si++)
+                    {
+                        if (ins[si].opcode == OpCodes.Ldftn)
+                        {
+                            OpenCloseSpeedOnAttach = (MethodInfo)ins[si].operand;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            if (OpenCloseSpeedOnAttach != null)
+            {
+                harmony.Patch(OpenCloseSpeedOnAttach, transpiler: new HarmonyMethod(AccessTools.Method(typeof(ReduceAnimation), nameof(DashTranspiler))));
+            }
         }
+
+        static IEnumerable<CodeInstruction> DashTranspiler(IEnumerable<CodeInstruction> codes)
+        {
+            foreach (var code in codes)
+            {
+                if (code.opcode == OpCodes.Ldc_R4 && (float)code.operand == 10f) code.operand = float.PositiveInfinity;
+                yield return code;
+            }
+        }
+
 
         [HarmonyPatch]
         class ReduceAnimationPatch
@@ -64,13 +98,11 @@ namespace ReduceAnimation
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(WorldDetail), "OnChanges")]
-            static void WorldDetailOnChangesPostfix(WorldDetail __instance,ref float ____expandLerp, ref float ____compactDetailLerp)
+            static void WorldDetailOnChangesPostfix(WorldDetail __instance, ref float ____expandLerp, ref float ____compactDetailLerp)
             {
                 ____expandLerp = (__instance.Expanded.Value ? 1f : 0f);
                 ____compactDetailLerp = (__instance.CompactDetailExpanded.Value ? 1f : 0f);
             }
-            		
-
-            }
+        }
     }
 }
