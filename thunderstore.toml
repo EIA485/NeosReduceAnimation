@@ -1,0 +1,42 @@
+# This file is used by the Thunderstore CLI to build and publish to Thunderstore. https://github.com/thunderstore-io/thunderstore-cli
+
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "eia485"
+name = "ReduceAnimation"
+versionNumber = "1.3.1"
+description = "reduces ui animations." # max 250 characters
+websiteUrl = "http://github.com/EIA485/NeosReduceAnimation"
+containsNsfwContent = false
+
+[package.dependencies] 
+ResoniteModding-BepisLoader = "1.3.1"
+
+[build]
+icon = "icon.png"
+readme = "README.md"
+outdir = "build"
+
+# Copy the compiled DLL to the plugins folder in mod package
+[[build.copy]]
+source = "ReduceAnimation/bin/Release/net9.0/ReduceAnimation.dll"
+target = "plugins/"
+
+# Include PDB
+[[build.copy]]
+source = "ReduceAnimation/bin/Release/net9.0/ReduceAnimation.pdb"
+target = "plugins/"
+
+# include LICENSE file in mod package
+[[build.copy]]
+source = "license.txt"
+target = "/"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["resonite"]
+
+[publish.categories]
+resonite = [ "mods" ] # https://thunderstore.io/api/experimental/community/resonite/category/
